@@ -81,7 +81,59 @@ public class RetailproductentityFacadeREST extends AbstractFacade<Retailproducte
     public String countREST() {
         return String.valueOf(super.count());
     }
+    
+    @GET
+    @Path("getRetailProductList")
+    @Produces("application/json")
+    public Response getRetailProductList(@QueryParam("countryID") Long countryID) {
+        System.out.println("RESTful: getRetailProductList() called with countryID " + countryID);
+        try {
+            List<RetailProduct> list = new ArrayList<>();
+            String stmt = "";
+            PreparedStatement ps;
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345");
 
+            if (countryID == null) {
+                stmt = "SELECT i.ID as id, i.NAME as name, f.IMAGEURL as imageURL, i.SKU as sku, i.DESCRIPTION as description, i.TYPE as type, i._LENGTH as length, i.WIDTH as width, i.HEIGHT as height, i.CATEGORY as category FROM itementity i, retailproductentity f where i.ID=f.ID and i.ISDELETED=FALSE;";
+                ps = conn.prepareStatement(stmt);
+            } else {
+                stmt = "SELECT i.ID as id, i.NAME as name, f.IMAGEURL as imageURL, i.SKU as sku, i.DESCRIPTION as description, i.TYPE as type, i._LENGTH as length, i.WIDTH as width, i.HEIGHT as height, i.CATEGORY as category, ic.RETAILPRICE as price FROM itementity i, retailproductentity f, item_countryentity ic where i.ID=f.ID and i.ID=ic.ITEM_ID and i.ISDELETED=FALSE and ic.COUNTRY_ID=?;";
+                ps = conn.prepareStatement(stmt);
+                ps.setLong(1, countryID);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                RetailProduct f = new RetailProduct();
+                f.setId(rs.getLong("id"));
+                f.setName(rs.getString("name"));
+                f.setImageUrl(rs.getString("imageURL"));
+                f.setSKU(rs.getString("sku"));
+                f.setDescription(rs.getString("description"));
+                f.setType(rs.getString("type"));
+                f.setCategory(rs.getString("category"));
+                if (countryID != null) {
+                    f.setPrice(rs.getDouble("price"));
+                }
+                list.add(f);
+            }
+            GenericEntity<List<RetailProduct>> entity = new GenericEntity<List<RetailProduct>>(list) {
+            };
+            return Response
+                    .status(200)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
+                    .header("Access-Control-Max-Age", "1209600")
+                    .entity(entity)
+                    .build();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+    
     @Override
     protected EntityManager getEntityManager() {
         return em;
