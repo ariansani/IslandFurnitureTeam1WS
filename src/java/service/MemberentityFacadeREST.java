@@ -112,7 +112,7 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
         }
     }
 
-    public String generatePasswordSalt() {
+    public static String generatePasswordSalt() {
         byte[] salt = new byte[16];
         try {
             SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
@@ -123,7 +123,7 @@ public class MemberentityFacadeREST extends AbstractFacade<Memberentity> {
         return Arrays.toString(salt);
     }
 
-    public String generatePasswordHash(String salt, String password) {
+    public static String generatePasswordHash(String salt, String password) {
         String passwordHash = null;
         try {
             password = salt + password;
