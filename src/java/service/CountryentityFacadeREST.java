@@ -21,6 +21,52 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
         super(Countryentity.class);
     }
 
+    
+    
+    //getQuantity which is called from AddFurnitureToListServlet
+    @GET
+    @Path("getQuantity")
+    @Produces({"application/json"})
+    public Response getQuantity(@QueryParam("countryID") Long countryID, @QueryParam("SKU") String SKU) {
+        try {
+            String connURL = "jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345";
+            Connection conn = DriverManager.getConnection(connURL);
+           
+            String sqlStr="SELECT sum(l.QUANTITY) as sum FROM storeentity s,\n" +
+" warehouseentity w,\n" +
+" storagebinentity sb, \n" +
+" storagebinentity_lineitementity sbli, \n" +
+" lineitementity l,\n" +
+" itementity i where \n" +
+" s.WAREHOUSE_ID=w.ID and \n" +
+" w.ID=sb.WAREHOUSE_ID and \n" +
+"\n" +
+" sb.ID=sbli.StorageBinEntity_ID and \n" +
+" sbli.lineItems_ID=l.ID and \n" +
+" l.ITEM_ID=i.ID and\n" +
+"  s.country_id = ? and \n" +
+"  i.SKU=?";
+
+// Create Prepared Statement object & execute
+            PreparedStatement ps = conn.prepareStatement(sqlStr);
+            ps.setLong(1, countryID);
+            ps.setString(2, SKU);
+            ResultSet rs = ps.executeQuery();
+            
+            String qty="";
+            while (rs.next()) {
+                qty = rs.getString("sum");
+            }
+            if (qty == null) {
+                qty  = "0";
+            }
+            return Response.ok(qty, MediaType.APPLICATION_JSON).build();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
     @POST
     @Override
     @Consumes({"application/xml", "application/json"})
@@ -86,7 +132,7 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
         }
         return countryList;
     }
-    
+
     @Override
     protected EntityManager getEntityManager() {
         return em;
