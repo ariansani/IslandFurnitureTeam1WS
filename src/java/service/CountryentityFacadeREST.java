@@ -31,13 +31,23 @@ public class CountryentityFacadeREST extends AbstractFacade<Countryentity> {
         try {
             String connURL = "jdbc:mysql://localhost:3306/islandfurniture-it07?zeroDateTimeBehavior=convertToNull&user=root&password=12345";
             Connection conn = DriverManager.getConnection(connURL);
-            String sqlStr = "SELECT SUM(li.QUANTITY) AS SUM FROM country_ecommerce c, "
-                    + "warehouseentity w,"
-                    + " storagebinentity sb,"
-                    + " storagebinentity_lineitementity sbli, "
-                    + "lineitementity li,"
-                    + " itementity i WHERE li.ITEM_ID=i.ID AND sbli.lineItems_ID=li.ID AND w.id=sb.WAREHOUSE_ID AND c.warehouseentity_id=w.id AND countryentity_id = ? AND i.SKU=?";
-            // Create Prepared Statement object & execute
+           
+            String sqlStr="SELECT sum(l.QUANTITY) as sum FROM storeentity s,\n" +
+" warehouseentity w,\n" +
+" storagebinentity sb, \n" +
+" storagebinentity_lineitementity sbli, \n" +
+" lineitementity l,\n" +
+" itementity i where \n" +
+" s.WAREHOUSE_ID=w.ID and \n" +
+" w.ID=sb.WAREHOUSE_ID and \n" +
+"\n" +
+" sb.ID=sbli.StorageBinEntity_ID and \n" +
+" sbli.lineItems_ID=l.ID and \n" +
+" l.ITEM_ID=i.ID and\n" +
+"  s.country_id = ? and \n" +
+"  i.SKU=?";
+
+// Create Prepared Statement object & execute
             PreparedStatement ps = conn.prepareStatement(sqlStr);
             ps.setLong(1, countryID);
             ps.setString(2, SKU);
